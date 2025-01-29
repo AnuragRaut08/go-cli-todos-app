@@ -3,45 +3,51 @@ package storage
 import (
 	"encoding/json"
 	"errors"
-	"go-cli-todos-app/models"
 	"os"
 )
 
+// Define Task struct in storage package
+type Task struct {
+	ID       int    `json:"id"`
+	Name     string `json:"name"`
+	Priority string `json:"priority"`
+	Done     bool   `json:"done"`
+}
+
+// File to store tasks
 const fileName = "tasks.json"
 
-// SaveTasks saves the task list to a JSON file.
-func SaveTasks(tasks []models.Task) error {
+// SaveTasks saves tasks to a file
+func SaveTasks(tasks []Task) error {
 	file, err := os.Create(fileName)
 	if err != nil {
-		return errors.New("could not create tasks.json file: " + err.Error())
+		return errors.New("failed to create file")
 	}
 	defer file.Close()
 
 	encoder := json.NewEncoder(file)
-	err = encoder.Encode(tasks)
-	if err != nil {
-		return errors.New("could not encode tasks to JSON: " + err.Error())
+	if err := encoder.Encode(tasks); err != nil {
+		return errors.New("failed to encode tasks")
 	}
 	return nil
 }
 
-// LoadTasks loads the task list from a JSON file.
-func LoadTasks() ([]models.Task, error) {
+// LoadTasks loads tasks from a file
+func LoadTasks() ([]Task, error) {
+	var tasks []Task
 	file, err := os.Open(fileName)
 	if err != nil {
-		// Return an empty slice if the file doesn't exist (first run)
 		if os.IsNotExist(err) {
-			return []models.Task{}, nil
+			return []Task{}, nil // Return empty list if file doesn't exist
 		}
-		return nil, errors.New("could not open tasks.json file: " + err.Error())
+		return nil, errors.New("failed to open file")
 	}
 	defer file.Close()
 
-	var tasks []models.Task
 	decoder := json.NewDecoder(file)
-	err = decoder.Decode(&tasks)
-	if err != nil {
-		return nil, errors.New("could not decode tasks from JSON: " + err.Error())
+	if err := decoder.Decode(&tasks); err != nil {
+		return nil, errors.New("failed to decode tasks")
 	}
+
 	return tasks, nil
 }
